@@ -3,8 +3,8 @@ parameters:
   cache-version:
     type: string
     default: "v13"
-orbs:
-  codecov: codecov/codecov@1.0.5
+# orbs:
+#   codecov: codecov/codecov@1.0.5
 jobs:
   build:
     parallelism: 1
@@ -124,8 +124,8 @@ jobs:
       - run: env $(cat .env.test | xargs) mix coveralls.json -o ./test-reports
       - run: yarn --cwd ./assets test
 
-      - codecov/upload:
-          file: test-reports/excoveralls.json
+      # - codecov/upload:
+      #     file: test-reports/excoveralls.json
 
       - store_test_results:
           path: test-reports/
