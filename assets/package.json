@@ -2,7 +2,8 @@
   "repository": {},
   "license": "MIT",
   "scripts": {
-    "deploy": "webpack --mode production",
+    "build": "webpack --mode development --config webpack.config.js",
+    "deploy": "webpack --mode production --config webpack.config.js",
     "watch": "webpack --mode development --watch"
   },
   "dependencies": {

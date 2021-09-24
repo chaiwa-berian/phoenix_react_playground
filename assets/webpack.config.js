@@ -13,11 +13,14 @@ module.exports = (env, options) => ({
     ]
   },
   entry: {
-    app: './assets/js/app.tsx'
+    app: './js/app.tsx'
   },
   output: {
-    filename: 'app.js',
-    path: path.resolve(__dirname, 'priv/static/js')
+    filename: 'js/[name].js',
+    publicPath: '/',
+    assetModuleFilename: 'images/[name][ext]',
+    sourceMapFilename: 'js/[name].js.map',
+    path: path.resolve(__dirname, '../priv/static/')
   },
   module: {
     rules: [
@@ -36,7 +39,7 @@ module.exports = (env, options) => ({
   },
   plugins: [
     new MiniCssExtractPlugin({ filename: '../css/app.css' }),
-    new CopyWebpackPlugin([{ from: 'assets/static/', to: '../' }])
+    new CopyWebpackPlugin([{ from: 'static/', to: '../' }])
   ],
   resolve: {
     // Add '.ts' and '.tsx' as resolvable extensions.
