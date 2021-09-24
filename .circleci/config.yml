@@ -25,7 +25,7 @@ jobs:
       - run:
           name: Check current version of node
           command: node -v
-      - run: cp .env.test.example .env.test
+      # - run: cp .env.test.example .env.test
       - run: mkdir test-reports
       - run: mkdir screenshots
       - run:
@@ -120,15 +120,15 @@ jobs:
       - run: mix ecto.create
       - run: mix ecto.migrate
 
-      - run: ./scripts/install-lp mix
-      - run: env $(cat .env.test | xargs) mix coveralls.json -o ./test-reports
-      - run: yarn --cwd ./assets test
+      # - run: ./scripts/install-lp mix
+      # - run: env $(cat .env.test | xargs) mix coveralls.json -o ./test-reports
+      # - run: yarn --cwd ./assets test
 
       # - codecov/upload:
       #     file: test-reports/excoveralls.json
 
-      - store_test_results:
-          path: test-reports/
+      # - store_test_results:
+      #     path: test-reports/
 
-      - store_artifacts:
-          path: screenshots/
+      # - store_artifacts:
+      #     path: screenshots/
