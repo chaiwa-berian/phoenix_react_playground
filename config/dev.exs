@@ -13,10 +13,13 @@ config :phoenix_react_playground, PhoenixReactPlaygroundWeb.Endpoint,
   check_origin: false,
   watchers: [
     node: [
-      "node_modules/webpack/bin/webpack.js",
+      "node_modules/.bin/webpack",
       "--mode",
       "development",
-      "--watch-stdin",
+      "--watch",
+      "--watch-options-stdin",
+      "--color",
+      cd: Path.expand("../assets", __DIR__)
     ]
   ]
 

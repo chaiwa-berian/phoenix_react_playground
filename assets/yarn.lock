@@ -3482,10 +3482,10 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-"phoenix@file:deps/phoenix":
+"phoenix@file:../deps/phoenix":
   version "1.4.0"
 
-"phoenix_html@file:deps/phoenix_html":
+"phoenix_html@file:../deps/phoenix_html":
   version "2.13.1"
 
 pify@^3.0.0:

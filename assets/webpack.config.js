@@ -16,10 +16,10 @@ module.exports = (env, options) => ({
     app: './js/app.tsx'
   },
   output: {
-    filename: 'js/[name].js',
-    publicPath: '/',
-    assetModuleFilename: 'images/[name][ext]',
-    sourceMapFilename: 'js/[name].js.map',
+    filename: 'js/app.js',
+    // publicPath: '/',
+    // assetModuleFilename: 'images/[name][ext]',
+    // sourceMapFilename: 'js/[name].js.map',
     path: path.resolve(__dirname, '../priv/static/')
   },
   module: {
@@ -38,7 +38,7 @@ module.exports = (env, options) => ({
     ]
   },
   plugins: [
-    new MiniCssExtractPlugin({ filename: '../css/app.css' }),
+    new MiniCssExtractPlugin({ filename: 'css/app.css' }),
     new CopyWebpackPlugin([{ from: 'static/', to: '../' }])
   ],
   resolve: {
