@@ -1,0 +1,134 @@
+version: 2.1
+parameters:
+  cache-version:
+    type: string
+    default: "v13"
+orbs:
+  codecov: codecov/codecov@1.0.5
+jobs:
+  build:
+    parallelism: 1
+    docker:
+      - image: circleci/elixir:1.11.3-node-browsers
+        environment:
+          MIX_ENV: test
+      - image: circleci/postgres:12.0-alpine
+
+    working_directory: ~/app # directory where steps will run
+    steps:
+      - checkout
+      - run:
+          name: "Update Node.js and npm"
+          command: |
+            curl -sSL "https://nodejs.org/dist/v14.17.6/node-v14.17.6-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v14.17.6-linux-x64/bin/node
+            curl https://www.npmjs.com/install.sh | sudo bash
+      - run:
+          name: Check current version of node
+          command: node -v
+      - run: cp .env.test.example .env.test
+      - run: mkdir test-reports
+      - run: mkdir screenshots
+      - run:
+          name: Start chromedriver
+          command: chromedriver
+          background: true
+
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+
+      - restore_cache:
+          keys:
+            - dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
+            - dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+            - dependency-cache-<< pipeline.parameters.cache-version >>
+      - restore_cache:
+          keys:
+            - build-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+            - build-cache-<< pipeline.parameters.cache-version >>
+      - run: mix do deps.get --only test, deps.compile, compile
+      - save_cache:
+          key: dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
+          paths:
+            - _build
+            - deps
+            - ~/.mix
+      - save_cache:
+          key: dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+          paths:
+            - _build
+            - deps
+            - ~/.mix
+      - save_cache:
+          key: dependency-cache-<< pipeline.parameters.cache-version >>
+          paths:
+            - _build
+            - deps
+            - ~/.mix
+      - save_cache:
+          key: build-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+          paths:
+            - _build
+      - save_cache:
+          key: build-cache-<< pipeline.parameters.cache-version >>
+          paths:
+            - _build
+
+      - restore_cache:
+          keys:
+            - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
+            - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+            - npm-cache-<< pipeline.parameters.cache-version >>
+      - run: yarn --cwd ./assets install
+      - save_cache:
+          key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
+          paths:
+            - ./assets/node_modules
+      - save_cache:
+          key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+          paths:
+            - ./assets/node_modules
+      - save_cache:
+          key: npm-cache-<< pipeline.parameters.cache-version >>
+          paths:
+            - ./assets/node_modules
+
+      - restore_cache:
+          keys:
+            - webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+            - webpack-cache-<< pipeline.parameters.cache-version >>
+      - run: cd assets && pwd && ./node_modules/.bin/webpack --mode production
+      - save_cache:
+          key: webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
+          paths:
+            - priv/images
+            - priv/static
+      - save_cache:
+          key: webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+          paths:
+            - priv/images
+            - priv/static
+      - save_cache:
+          key: webpack-cache-<< pipeline.parameters.cache-version >>
+          paths:
+            - priv/images
+            - priv/static
+
+      - run:
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+
+      - run: mix ecto.create
+      - run: mix ecto.migrate
+
+      - run: ./scripts/install-lp mix
+      - run: env $(cat .env.test | xargs) mix coveralls.json -o ./test-reports
+      - run: yarn --cwd ./assets test
+
+      - codecov/upload:
+          file: test-reports/excoveralls.json
+
+      - store_test_results:
+          path: test-reports/
+
+      - store_artifacts:
+          path: screenshots/
