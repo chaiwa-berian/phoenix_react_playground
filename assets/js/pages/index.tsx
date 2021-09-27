@@ -13,10 +13,10 @@ const HomePage: React.FC<RouteComponentProps> = () => (
       </p>
       <p>
         <Link className="button" to="/counter">
-          Counter Example
+          Counter Example 2
         </Link>{' '}
         <Link className="button button-outline" to="/fetch-data">
-          API Example
+          API Example 2
         </Link>
       </p>
     </section>

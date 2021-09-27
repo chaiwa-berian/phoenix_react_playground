@@ -82,17 +82,14 @@ jobs:
       - save_cache:
           key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
           paths:
-            # - ./assets/node_modules
             - ~/.cache/yarn
       - save_cache:
           key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
           paths:
-            # - ./assets/node_modules
             - ~/.cache/yarn
       - save_cache:
           key: npm-cache-<< pipeline.parameters.cache-version >>
           paths:
-            # - ./assets/node_modules
             - ~/.cache/yarn
 
       - restore_cache:
