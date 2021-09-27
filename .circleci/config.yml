@@ -82,7 +82,8 @@ jobs:
       - save_cache:
           key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
           paths:
-            - ./assets/node_modules
+            # - ./assets/node_modules
+            - ~/.cache/yarn
       - save_cache:
           key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
           paths:
@@ -120,7 +121,7 @@ jobs:
       - run: mix ecto.create
       - run: mix ecto.migrate
 
-      - run: ./scripts/install-lp mix
+      # - run: ./scripts/install-lp mix
       # - run: env $(cat .env.test | xargs) mix coveralls.json -o ./test-reports
       # - run: yarn --cwd ./assets test
 
