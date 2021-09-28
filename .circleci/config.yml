@@ -35,7 +35,7 @@ jobs:
 
       - run: mix local.hex --force
       - run: mix local.rebar --force
-
+      # Mix
       - restore_cache:
           keys:
             - dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
@@ -72,28 +72,19 @@ jobs:
           key: build-cache-<< pipeline.parameters.cache-version >>
           paths:
             - _build
-
+      # Yarn Cache
       - restore_cache:
           keys:
             - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
-            - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
-            - npm-cache-<< pipeline.parameters.cache-version >>
-      - run: yarn --cwd ./assets install
+      - run: cd ./assets && yarn install
       - save_cache:
           key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
           paths:
             - ~/.cache/yarn
-      - save_cache:
-          key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
-          paths:
-            - ~/.cache/yarn
-      - save_cache:
-          key: npm-cache-<< pipeline.parameters.cache-version >>
-          paths:
-            - ~/.cache/yarn
-
+      # Webpack Cache
       - restore_cache:
           keys:
+            - webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
             - webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
             - webpack-cache-<< pipeline.parameters.cache-version >>
       - run: cd assets && pwd && ./node_modules/.bin/webpack --mode production

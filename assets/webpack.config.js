@@ -1,3 +1,5 @@
+// Google what clean-webpack-plugin does
+// Configure webpack to cache the builds
 const path = require('path');
 const glob = require('glob');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -17,9 +19,6 @@ module.exports = (env, options) => ({
   },
   output: {
     filename: 'js/app.js',
-    // publicPath: '/',
-    // assetModuleFilename: 'images/[name][ext]',
-    // sourceMapFilename: 'js/[name].js.map',
     path: path.resolve(__dirname, '../priv/static/')
   },
   module: {
