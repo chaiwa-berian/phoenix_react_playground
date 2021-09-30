@@ -87,7 +87,7 @@ jobs:
             - webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
             - webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
             - webpack-cache-<< pipeline.parameters.cache-version >>
-      - run: cd assets && pwd && ./node_modules/.bin/webpack --mode production
+      - run: cd assets && pwd && ./node_modules/.bin/webpack --version && ./node_modules/.bin/webpack --mode production
       - save_cache:
           key: webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
           paths:
