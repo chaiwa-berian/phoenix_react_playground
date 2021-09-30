@@ -37,7 +37,6 @@ jobs:
       - run: mix local.hex --force
       - run: mix local.rebar --force
 
-      # 1. Run mix deps.get and cache
       - restore_cache:
           keys:
             - dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
@@ -81,7 +80,8 @@ jobs:
       - persist_to_workspace:
                 root: ./
                 paths:
-                  - deps/
+                  - deps/phoenix
+                  - deps/phoenix_html
 
       # - run: ./scripts/install-lp mix
       # - run: env $(cat .env.test | xargs) mix coveralls.json -o ./test-reports
@@ -103,7 +103,7 @@ jobs:
       - attach_workspace:
           at: ~/app
       # 1. Run Yarn and Cache
-      - run: ls ~/app/deps
+      # - run: ls ~/app/deps
       - update_node_npm
       - restore_cache:
           keys:
