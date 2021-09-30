@@ -33,6 +33,7 @@ jobs:
       # 1. Run mix deps.get and cache
       - run: mix local.hex --force
       - run: mix local.rebar --force
+
       - restore_cache:
           keys:
             - dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
@@ -42,7 +43,9 @@ jobs:
           keys:
             - build-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
             - build-cache-<< pipeline.parameters.cache-version >>
+
       - run: mix do deps.get --only test, deps.compile, compile
+
       - save_cache:
           key: dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
           paths:
@@ -55,6 +58,7 @@ jobs:
           key: dependency-cache-<< pipeline.parameters.cache-version >>
           paths:
             - deps
+
       - save_cache:
           key: build-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
           paths:
@@ -63,6 +67,7 @@ jobs:
           key: build-cache-<< pipeline.parameters.cache-version >>
           paths:
             - _build
+
       # 1. Run Yarn and Cache
       - update-node-and-npm
       - restore_cache:
@@ -75,6 +80,9 @@ jobs:
 
       - save_cache:
           key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+
       - save_cache:
           key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
           paths:
