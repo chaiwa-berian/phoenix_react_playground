@@ -92,8 +92,8 @@ jobs:
       # - store_artifacts:
       #     path: screenshots/
   build_frontend:
-    parallelism: 1
-    executor: platform-executor
+    # parallelism: 1
+    # executor: platform-executor
     steps:
       - checkout
       - attach_workspace:
