@@ -144,6 +144,6 @@ workflows:
   build_and_test:
     jobs:
       - build_backend
-      - build_frontend
-        requires
-          - build_backend
+      - build_frontend:
+          requires:
+            - build_backend
