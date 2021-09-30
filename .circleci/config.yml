@@ -5,6 +5,17 @@ parameters:
     default: "v14"
 # orbs:
 #   codecov: codecov/codecov@1.0.5
+commands:
+  update-node-and-npm:
+    steps:
+      - run:
+          name: "Update Node.js and npm"
+          command: |
+            curl -sSL "https://nodejs.org/dist/v14.17.6/node-v14.17.6-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v14.17.6-linux-x64/bin/node
+            curl https://www.npmjs.com/install.sh | sudo bash
+      - run:
+          name: Check current version of node
+          command: node -v
 executors:
   platform-executor:
     docker:
@@ -19,25 +30,31 @@ jobs:
     executor: platform-executor
     steps:
       - checkout
-      - run:
-          name: "Update Node.js and npm"
-          command: |
-            curl -sSL "https://nodejs.org/dist/v14.17.6/node-v14.17.6-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v14.17.6-linux-x64/bin/node
-            curl https://www.npmjs.com/install.sh | sudo bash
-      - run:
-          name: Check current version of node
-          command: node -v
+      - update-node-and-npm
+      # 1. Run Yarn and Cache
+      - restore_cache:
+          keys:
+            - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
+      - run: cd ./assets && yarn install
+      - save_cache:
+          key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+
+      # 2. Build frontend:- (not caching webpack until further notice. See inspiration here https://github.com/AlexRiedler/my_project)
+      - run: cd assets && pwd && ./node_modules/.bin/webpack --version && ./node_modules/.bin/webpack --mode production
+
       # - run: cp .env.test.example .env.test
-      - run: mkdir test-reports
-      - run: mkdir screenshots
+      # - run: mkdir test-reports
+      # - run: mkdir screenshots
       # - run:
       #     name: Start chromedriver
       #     command: chromedriver
       #     background: true
 
+      # 3. Run mix deps.get and cache
       - run: mix local.hex --force
       - run: mix local.rebar --force
-      # Mix
       - restore_cache:
           keys:
             - dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
@@ -74,37 +91,6 @@ jobs:
           key: build-cache-<< pipeline.parameters.cache-version >>
           paths:
             - _build
-      # Yarn Cache
-      - restore_cache:
-          keys:
-            - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
-      - run: cd ./assets && yarn install
-      - save_cache:
-          key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
-          paths:
-            - ~/.cache/yarn
-      # Webpack Cache(not caching webpack)
-      # - restore_cache:
-      #     keys:
-      #       - webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
-      #       - webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
-      #       - webpack-cache-<< pipeline.parameters.cache-version >>
-      - run: cd assets && pwd && ./node_modules/.bin/webpack --version && ./node_modules/.bin/webpack --mode production
-      # - save_cache:
-      #     key: webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
-      #     paths:
-      #       - priv/images
-      #       - priv/static
-      # - save_cache:
-      #     key: webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
-      #     paths:
-      #       - priv/images
-      #       - priv/static
-      # - save_cache:
-      #     key: webpack-cache-<< pipeline.parameters.cache-version >>
-      #     paths:
-      #       - priv/images
-      #       - priv/static
 
       - run:
           name: Wait for DB
