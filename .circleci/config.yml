@@ -5,8 +5,16 @@ parameters:
     default: "v14"
 # orbs:
 #   codecov: codecov/codecov@1.0.5
+executors:
+  platform-executor:
+    docker:
+      - image: circleci/elixir:1.11.3-node-browsers
+        environment:
+          MIX_ENV: test
+      - image: circleci/postgres:12.0-alpine
+    working_directory: ~/app # directory where steps will run
 commands:
-  update-node-and-npm:
+  update_node_npm:
     steps:
       - run:
           name: "Update Node.js and npm"
@@ -16,24 +24,16 @@ commands:
       - run:
           name: Check current version of node
           command: node -v
-executors:
-  platform-executor:
-    docker:
-      - image: circleci/elixir:1.11.3-node-browsers
-        environment:
-          MIX_ENV: test
-      - image: circleci/postgres:12.0-alpine
-    working_directory: ~/app # directory where steps will run
 jobs:
   build:
     parallelism: 1
     executor: platform-executor
     steps:
       - checkout
-      # 1. Run mix deps.get and cache
       - run: mix local.hex --force
       - run: mix local.rebar --force
 
+      # 1. Run mix deps.get and cache
       - restore_cache:
           keys:
             - dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
@@ -69,7 +69,7 @@ jobs:
             - _build
 
       # 1. Run Yarn and Cache
-      - update-node-and-npm
+      - update_node_npm
       - restore_cache:
           keys:
             - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
@@ -82,7 +82,6 @@ jobs:
           key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
           paths:
             - ~/.cache/yarn
-
       - save_cache:
           key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
           paths:
