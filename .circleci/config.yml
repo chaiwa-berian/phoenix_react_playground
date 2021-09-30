@@ -100,11 +100,11 @@ jobs:
     executor: frontend-executor
     steps:
       - checkout
-      - run: ls ~/app
       - attach_workspace:
           at: ~/app/deps
       # 1. Run Yarn and Cache
-      # - update_node_npm
+      - run: ls ~/app
+      - update_node_npm
       - restore_cache:
           keys:
             - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
