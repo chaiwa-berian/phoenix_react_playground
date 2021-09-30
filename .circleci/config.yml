@@ -46,22 +46,15 @@ jobs:
       - save_cache:
           key: dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
           paths:
-            # - _build
             - deps
-            # - ~/.mix
-      - run: ls ~/.mix
       - save_cache:
           key: dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
           paths:
-            # - _build
             - deps
-            # - ~/.mix
       - save_cache:
           key: dependency-cache-<< pipeline.parameters.cache-version >>
           paths:
-            # - _build
             - deps
-            # - ~/.mix
       - save_cache:
           key: build-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
           paths:
@@ -75,9 +68,19 @@ jobs:
       - restore_cache:
           keys:
             - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
+            - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+            - npm-cache-<< pipeline.parameters.cache-version >>
+
       - run: cd ./assets && yarn install
+
       - save_cache:
           key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
+      - save_cache:
+          key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+          paths:
+            - ~/.cache/yarn
+      - save_cache:
+          key: npm-cache-<< pipeline.parameters.cache-version >>
           paths:
             - ~/.cache/yarn
 
