@@ -30,10 +30,10 @@ jobs:
       # - run: cp .env.test.example .env.test
       - run: mkdir test-reports
       - run: mkdir screenshots
-      - run:
-          name: Start chromedriver
-          command: chromedriver
-          background: true
+      # - run:
+      #     name: Start chromedriver
+      #     command: chromedriver
+      #     background: true
 
       - run: mix local.hex --force
       - run: mix local.rebar --force
@@ -83,28 +83,28 @@ jobs:
           key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
           paths:
             - ~/.cache/yarn
-      # Webpack Cache
-      - restore_cache:
-          keys:
-            - webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
-            - webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
-            - webpack-cache-<< pipeline.parameters.cache-version >>
+      # Webpack Cache(not caching webpack)
+      # - restore_cache:
+      #     keys:
+      #       - webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
+      #       - webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+      #       - webpack-cache-<< pipeline.parameters.cache-version >>
       - run: cd assets && pwd && ./node_modules/.bin/webpack --version && ./node_modules/.bin/webpack --mode production
-      - save_cache:
-          key: webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
-          paths:
-            - priv/images
-            - priv/static
-      - save_cache:
-          key: webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
-          paths:
-            - priv/images
-            - priv/static
-      - save_cache:
-          key: webpack-cache-<< pipeline.parameters.cache-version >>
-          paths:
-            - priv/images
-            - priv/static
+      # - save_cache:
+      #     key: webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
+      #     paths:
+      #       - priv/images
+      #       - priv/static
+      # - save_cache:
+      #     key: webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+      #     paths:
+      #       - priv/images
+      #       - priv/static
+      # - save_cache:
+      #     key: webpack-cache-<< pipeline.parameters.cache-version >>
+      #     paths:
+      #       - priv/images
+      #       - priv/static
 
       - run:
           name: Wait for DB
