@@ -81,15 +81,15 @@ jobs:
       - save_cache:
           key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
           paths:
-            - ~/.cache/yarn
+            - --frozen-lockfile --cache-folder ~/.cache/yarn
       - save_cache:
           key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
           paths:
-            - ~/.cache/yarn
+            - --frozen-lockfile --cache-folder ~/.cache/yarn
       - save_cache:
           key: npm-cache-<< pipeline.parameters.cache-version >>
           paths:
-            - ~/.cache/yarn
+            - --frozen-lockfile --cache-folder ~/.cache/yarn
 
       # 2. Build frontend:- (not caching webpack until further notice. See inspiration here https://github.com/AlexRiedler/my_project)
       - run: cd assets && pwd && ./node_modules/.bin/webpack --version && ./node_modules/.bin/webpack --mode production
