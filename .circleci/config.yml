@@ -101,9 +101,9 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: ~/app/deps
+          at: ~/app
       # 1. Run Yarn and Cache
-      - run: ls ~/app/deps/deps
+      - run: ls ~/app/deps
       - update_node_npm
       - restore_cache:
           keys:
