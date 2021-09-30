@@ -100,6 +100,7 @@ jobs:
     executor: frontend-executor
     steps:
       - checkout
+      - run: ls ~/
       - attach_workspace:
           at: /app/deps
       # 1. Run Yarn and Cache
