@@ -36,6 +36,8 @@ jobs:
       - restore_cache:
           keys:
             - dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
+            - dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+            - dependency-cache-<< pipeline.parameters.cache-version >>
       - restore_cache:
           keys:
             - build-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
@@ -44,11 +46,28 @@ jobs:
       - save_cache:
           key: dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
           paths:
-            - _build
+            # - _build
             - deps
-            - ~/.mix
+            # - ~/.mix
+      - run: ls ~/.mix
+      - save_cache:
+          key: dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+          paths:
+            # - _build
+            - deps
+            # - ~/.mix
+      - save_cache:
+          key: dependency-cache-<< pipeline.parameters.cache-version >>
+          paths:
+            # - _build
+            - deps
+            # - ~/.mix
       - save_cache:
           key: build-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+          paths:
+            - _build
+      - save_cache:
+          key: build-cache-<< pipeline.parameters.cache-version >>
           paths:
             - _build
       # 1. Run Yarn and Cache
