@@ -16,7 +16,6 @@ executors:
 commands:
   update_node_npm:
     steps:
-      - checkout
       - run:
           name: "Update Node.js and npm"
           command: |
@@ -30,6 +29,7 @@ jobs:
     parallelism: 1
     executor: platform-executor
     steps:
+      - checkout
       - run: mix local.hex --force
       - run: mix local.rebar --force
 
