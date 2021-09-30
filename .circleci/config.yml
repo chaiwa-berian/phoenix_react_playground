@@ -13,7 +13,7 @@ executors:
           MIX_ENV: test
       - image: circleci/postgres:12.0-alpine
     working_directory: ~/app # directory where steps will run
-   frontend-executor:
+  frontend-executor:
     docker:
       - image: cimg/node:14.17.6-browsers
     working_directory: ~/app # directory where steps will run
