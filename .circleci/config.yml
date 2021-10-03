@@ -28,7 +28,7 @@ commands:
       - run:
           name: Check current version of node
           command: node -v
-  install_lp:
+  install_test_lp:
     steps:
       - run:
           name: "Create priv/language_packs directory if does not exist"
@@ -50,6 +50,14 @@ commands:
           keys:
             - build-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
             - build-cache-<< pipeline.parameters.cache-version >>
+      - restore_cache:
+          keys:
+            - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
+            - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+            - npm-cache-<< pipeline.parameters.cache-version >>
+      - restore_cache:
+          keys:
+            - webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Revision }}
   start_chromedriver:
     steps:
       - run:
@@ -60,6 +68,14 @@ commands:
     steps:
       - run: mix local.hex --force
       - run: mix local.rebar --force
+  prepare_db:
+    steps:
+      - run:
+        name: Wait for DB
+        command: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run: mix ecto.create
+      - run: mix ecto.migrate
+
 jobs:
   build:
     parallelism: 1
@@ -68,9 +84,8 @@ jobs:
       - update_node_npm
       - checkout
       - run: cp .env.test.example .env.test
-      - run: mix local.hex --force
-      - run: mix local.rebar --force
-
+      - setup_mix_local
+      # Mix Cache
       - restore_cache:
           keys:
             - dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
@@ -96,7 +111,7 @@ jobs:
           paths:
             - deps
 
-      # Build Cache
+      # Mix Build Cache
       - save_cache:
           key: build-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
           paths:
@@ -130,20 +145,18 @@ jobs:
       # ------------------------------------------------------------------------
 
       # WEBPACK ----------------------------------------------------------------
-      #  We are not caching webpack build artifacts yet.
-      #  TODO: See inspiration here https://github.com/AlexRiedler/my_project)
+      #  We are not caching webpack build artifacts yet!
+      #  We save build artifacts(priv/static) to cache, for now,
+      #  so they can be reused by test jobs.
+      #  TODO: Setup webpack caching.
+      #  See inspiration here https://github.com/AlexRiedler/my_project)
       #  and this issue https://github.com/phoenixframework/phoenix/issues/2996
-
       - run: cd assets && pwd && ./node_modules/.bin/webpack --mode production
 
-      # DB Connect
-      # ------------------------------------------------------------------------
-      - run:
-          name: Wait for DB
-          command: dockerize -wait tcp://localhost:5432 -timeout 1m
-
-      - run: mix ecto.create
-      - run: mix ecto.migrate
+      - save_cache:
+          key: webpack-cache-<< pipeline.parameters.cache-version >>-{{ .Revision }}
+          paths:
+            - priv/static
 
         # Language Packs Cache
         # ------------------------------------------------------------------------
@@ -151,7 +164,7 @@ jobs:
           keys:
             - language-packs-cache-<< pipeline.parameters.cache-version >>
 
-      - install_lp
+      - install_test_lp
 
       - save_cache:
           key: language-packs-<< pipeline.parameters.cache-version >>
@@ -176,7 +189,7 @@ jobs:
       # - store_artifacts:
       #     path: test/artifacts/screenshots/
 
-  run_elixir_tests:
+  run_integration_tests:
     parallelism: 1
     executor: platform-executor
     steps:
@@ -186,14 +199,16 @@ jobs:
       - run: cp .env.test.example .env.test
       - setup_mix_local
       - restore_platform_cache
-      - run: ls ./priv
+      - run: cd assets && yarn install
+      - prepare_db
+      - run: ls
 
 workflows:
   version: 2.1
   build_and_test:
     jobs:
       - build
-      - run_elixir_tests:
+      - run_integration_tests:
           requires:
             - build
 
