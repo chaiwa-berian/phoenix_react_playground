@@ -35,9 +35,10 @@ commands:
           command: |
             [ -d priv/language_packs ] || mkdir -p priv/language_packs
             cd ./priv/language_packs
-            if [! "$(ls -A ./)" ]; then
+            if [ ! "$(ls -A ./)" ]; then
               ../../scripts/install_test_lp.sh
             fi
+            tree
 jobs:
   build:
     parallelism: 1
@@ -46,6 +47,7 @@ jobs:
       - update_node_npm
       - checkout
       - run: cp .env.test.example .env.test
+      - run ls -a
       # - run:
       #     name: Start chromedriver
       #     command: chromedriver
