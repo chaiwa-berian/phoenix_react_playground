@@ -47,7 +47,6 @@ jobs:
       - update_node_npm
       - checkout
       - run: cp .env.test.example .env.test
-      - run: ls -a
       # - run:
       #     name: Start chromedriver
       #     command: chromedriver
