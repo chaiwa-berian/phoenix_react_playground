@@ -193,7 +193,7 @@ workflows:
   build_and_test:
     jobs:
       - build
-      - run_elixir_tests
+      - run_elixir_tests:
           requires:
             - build
 
