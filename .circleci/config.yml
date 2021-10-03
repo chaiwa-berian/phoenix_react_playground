@@ -120,8 +120,8 @@ jobs:
 
       - run: cd assets && pwd && ./node_modules/.bin/webpack --mode production
 
+      # DB Connect
       # ------------------------------------------------------------------------
-
       - run:
           name: Wait for DB
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
@@ -129,7 +129,25 @@ jobs:
       - run: mix ecto.create
       - run: mix ecto.migrate
 
+        # Language Packs Cache
+        # ------------------------------------------------------------------------
+      - restore_cache:
+          keys:
+            - language-packs-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+            - language-packs-cache-<< pipeline.parameters.cache-version >>
+
       - install_lp
+
+      - save_cache:
+          key: language-packs-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+          paths:
+            - priv/language_packs
+      - save_cache:
+          key: language-packs-<< pipeline.parameters.cache-version >>
+          paths:
+            - priv/language_packs
+
+      #  --------------------------------------------------------------------------
 
       # Test(Move these to their own jobs)
       # - run: env $(cat .env.test | xargs) mix coveralls.json -o ./test/artifacts/reports
