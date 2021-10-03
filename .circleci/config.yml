@@ -39,6 +39,27 @@ commands:
               ~/app/scripts/install_test_lp.sh
             fi
             ls -a
+  restore_platform_cache:
+    steps:
+      - restore_cache:
+          keys:
+            - dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
+            - dependency-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+            - dependency-cache-<< pipeline.parameters.cache-version >>
+      - restore_cache:
+          keys:
+            - build-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+            - build-cache-<< pipeline.parameters.cache-version >>
+  start_chromedriver:
+    steps:
+      - run:
+          name: Start chromedriver
+          command: chromedriver
+          background: true
+  setup_mix_local:
+    steps:
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
 jobs:
   build:
     parallelism: 1
@@ -47,10 +68,6 @@ jobs:
       - update_node_npm
       - checkout
       - run: cp .env.test.example .env.test
-      # - run:
-      #     name: Start chromedriver
-      #     command: chromedriver
-      #     background: true
       - run: mix local.hex --force
       - run: mix local.rebar --force
 
@@ -159,8 +176,24 @@ jobs:
       # - store_artifacts:
       #     path: test/artifacts/screenshots/
 
+  run_elixir_tests:
+    parallelism: 1
+    executor: platform-executor
+    steps:
+      - start_chromedriver
+      - update_node_npm
+      - checkout
+      - run: cp .env.test.example .env.test
+      - setup_mix_local
+      - restore_platform_cache
+      - run: ls -a
+
 workflows:
   version: 2.1
   build_and_test:
     jobs:
       - build
+      - run_elixir_tests
+          requires:
+            - build
+
