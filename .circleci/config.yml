@@ -171,26 +171,8 @@ jobs:
           paths:
             - priv/language_packs
 
-      #  --------------------------------------------------------------------------
-
-      # Test(Move these to their own jobs)
-      # - run: env $(cat .env.test | xargs) mix coveralls.json -o ./test/artifacts/reports
-
-      # - run: ls ./test/artifacts/reports
-
-      # - run: cd assets && yarn test
-
-      # - codecov/upload:
-      #     file: test/artifacts/reports/excoveralls.json
-
-      # - store_test_results:
-      #     path: test/artifacts/reports/
-
-      # - store_artifacts:
-      #     path: test/artifacts/screenshots/
-
   run_integration_tests:
-    parallelism: 1
+    parallelism: 1 # Update to 4 after confirming
     executor: platform-executor
     steps:
       - start_chromedriver
@@ -204,7 +186,6 @@ jobs:
       - run: ls
       - run: env $(cat .env.test | xargs) mix coveralls.json -o ./test/artifacts/reports
       - run: ls ./test/artifacts/reports
-      # - run: cd assets && yarn test
       - codecov/upload:
           file: test/artifacts/reports/excoveralls.json
       - store_test_results:
@@ -212,12 +193,29 @@ jobs:
       - store_artifacts:
           path: test/artifacts/screenshots/
 
+  run_jest_tests:
+    parallelism: 1 # Update to 4 after confirming
+    executor: platform-executor
+    steps:
+      - update_node_npm
+      - checkout
+      - run: cp .env.test.example .env.test
+      - setup_mix_local
+      - restore_platform_cache
+      - run: cd assets && yarn install
+      - prepare_db
+      - run: ls
+      - run: cd assets && yarn test
+
 workflows:
   version: 2.1
   build_and_test:
     jobs:
       - build
       - run_integration_tests:
+          requires:
+            - build
+      - run_jest_tests:
           requires:
             - build
 
