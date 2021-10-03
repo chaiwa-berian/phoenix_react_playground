@@ -38,7 +38,7 @@ commands:
             if [ ! "$(ls -A ./)" ]; then
               ~/app/scripts/install_test_lp.sh
             fi
-            find . | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+            ls -a
 jobs:
   build:
     parallelism: 1
