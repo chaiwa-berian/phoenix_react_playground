@@ -1,22 +1,22 @@
 version: 2.1
+
 parameters:
   cache-version:
     type: string
-    default: "v14"
-# orbs:
-#   codecov: codecov/codecov@1.0.5
+    default: "v14" # taylor added this to "force" all caches to be cleared
+
+orbs:
+  codecov: codecov/codecov@1.0.5
+
 executors:
-  backend-executor:
+  platform-executor:
     docker:
       - image: circleci/elixir:1.11.3-node-browsers
         environment:
           MIX_ENV: test
       - image: circleci/postgres:12.0-alpine
     working_directory: ~/app # directory where steps will run
-  frontend-executor:
-    docker:
-      - image: cimg/node:14.17.6-browsers
-    working_directory: ~/app # directory where steps will run
+
 commands:
   update_node_npm:
     steps:
@@ -28,12 +28,29 @@ commands:
       - run:
           name: Check current version of node
           command: node -v
-jobs:
-  build_backend:
-    parallelism: 1
-    executor: backend-executor
+  install_lp:
     steps:
+      - run:
+          name: "Create priv/language_packs directory if does not exist"
+          command: |
+            [ -d priv/language_packs ] || mkdir -p priv/language_packs
+            cd ./priv/language_packs
+            if [ "$(ls -A ./)" ]; then
+            else
+              ../../scripts/install_test_lp.sh
+            fi
+jobs:
+  build:
+    parallelism: 1
+    executor: platform-executor
+    steps:
+      - update_node_npm
       - checkout
+      - run: cp .env.test.example .env.test
+      # - run:
+      #     name: Start chromedriver
+      #     command: chromedriver
+      #     background: true
       - run: mix local.hex --force
       - run: mix local.rebar --force
 
@@ -62,6 +79,7 @@ jobs:
           paths:
             - deps
 
+      # Build Cache
       - save_cache:
           key: build-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
           paths:
@@ -70,6 +88,39 @@ jobs:
           key: build-cache-<< pipeline.parameters.cache-version >>
           paths:
             - _build
+
+      # YARN -------------------------------------------------------------------
+      - restore_cache:
+          keys:
+            - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
+            - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+            - npm-cache-<< pipeline.parameters.cache-version >>
+
+      - run: cd assets && yarn install
+
+      - save_cache:
+          key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+      - save_cache:
+          key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
+          paths:
+            - ~/.cache/yarn
+      - save_cache:
+          key: npm-cache-<< pipeline.parameters.cache-version >>
+          paths:
+            - ~/.cache/yarn
+      # ------------------------------------------------------------------------
+
+      # WEBPACK ----------------------------------------------------------------
+      #  We are not caching webpack build artifacts yet.
+      #  TODO: See inspiration here https://github.com/AlexRiedler/my_project)
+      #  and this issue https://github.com/phoenixframework/phoenix/issues/2996
+
+      - run: cd assets && pwd && ./node_modules/.bin/webpack --mode production
+
+      # ------------------------------------------------------------------------
+
       - run:
           name: Wait for DB
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
@@ -77,85 +128,20 @@ jobs:
       - run: mix ecto.create
       - run: mix ecto.migrate
 
-      - persist_to_workspace:
-                root: ./
-                paths:
-                  - deps/phoenix
-                  - deps/phoenix_html
+      - install_lp
 
-      # - run: ./scripts/install-lp mix
-      # - run: env $(cat .env.test | xargs) mix coveralls.json -o ./test-reports
-      # - run: yarn --cwd ./assets test
+      # Test(Move these to their own jobs)
+      # - run: env $(cat .env.test | xargs) mix coveralls.json -o ./test/artifacts/reports
 
-      # - codecov/upload:
-      #     file: test-reports/excoveralls.json
+      # - run: ls ./test/artifacts/reports
 
-      # - store_test_results:
-      #     path: test-reports/
-
-      # - store_artifacts:
-      #     path: screenshots/
-  build_frontend:
-    parallelism: 1
-    executor: frontend-executor
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ~/app
-      # 1. Run Yarn and Cache
-      # - run: ls ~/app/deps
-      - update_node_npm
-      - restore_cache:
-          keys:
-            - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
-            - npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
-            - npm-cache-<< pipeline.parameters.cache-version >>
-
-      - run: cd ./assets && yarn install
-
-      - save_cache:
-          key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}-{{ checksum "./assets/yarn.lock" }}
-          paths:
-            - --frozen-lockfile --cache-folder ~/.cache/yarn
-      - save_cache:
-          key: npm-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
-          paths:
-            - --frozen-lockfile --cache-folder ~/.cache/yarn
-      - save_cache:
-          key: npm-cache-<< pipeline.parameters.cache-version >>
-          paths:
-            - --frozen-lockfile --cache-folder ~/.cache/yarn
-
-      # 2. Build frontend:- (not caching webpack until further notice. See inspiration here https://github.com/AlexRiedler/my_project)
-      - run: cd assets && pwd && ./node_modules/.bin/webpack --version && ./node_modules/.bin/webpack --mode production
-
-      # - run: cp .env.test.example .env.test
-      # - run: mkdir test-reports
-      # - run: mkdir screenshots
-      # - run:
-      #     name: Start chromedriver
-      #     command: chromedriver
-      #     background: true
-
-    # - run: ./scripts/install-lp mix
-      # - run: env $(cat .env.test | xargs) mix coveralls.json -o ./test-reports
-      # - run: yarn --cwd ./assets test
+      # - run: cd assets && yarn test
 
       # - codecov/upload:
-      #     file: test-reports/excoveralls.json
+      #     file: test/artifacts/reports/excoveralls.json
 
       # - store_test_results:
-      #     path: test-reports/
+      #     path: test/artifacts/reports/
 
       # - store_artifacts:
-      #     path: screenshots/
-
-workflows:
-  version: 2.1
-
-  build_and_test:
-    jobs:
-      - build_backend
-      - build_frontend:
-          requires:
-            - build_backend
+      #     path: test/artifacts/screenshots/
