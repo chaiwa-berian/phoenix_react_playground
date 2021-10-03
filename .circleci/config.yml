@@ -132,15 +132,10 @@ jobs:
         # ------------------------------------------------------------------------
       - restore_cache:
           keys:
-            - language-packs-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
             - language-packs-cache-<< pipeline.parameters.cache-version >>
 
       - install_lp
 
-      - save_cache:
-          key: language-packs-cache-<< pipeline.parameters.cache-version >>-{{ .Branch }}
-          paths:
-            - priv/language_packs
       - save_cache:
           key: language-packs-<< pipeline.parameters.cache-version >>
           paths:
