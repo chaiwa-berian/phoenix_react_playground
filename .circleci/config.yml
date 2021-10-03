@@ -202,6 +202,15 @@ jobs:
       - run: cd assets && yarn install
       - prepare_db
       - run: ls
+      - run: env $(cat .env.test | xargs) mix coveralls.json -o ./test/artifacts/reports
+      - run: ls ./test/artifacts/reports
+      # - run: cd assets && yarn test
+      - codecov/upload:
+          file: test/artifacts/reports/excoveralls.json
+      - store_test_results:
+          path: test/artifacts/reports/
+      - store_artifacts:
+          path: test/artifacts/screenshots/
 
 workflows:
   version: 2.1
