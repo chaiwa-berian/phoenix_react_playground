@@ -36,9 +36,9 @@ commands:
             [ -d priv/language_packs ] || mkdir -p priv/language_packs
             cd ./priv/language_packs
             if [ ! "$(ls -A ./)" ]; then
-              ../../scripts/install_test_lp.sh
+              ~/app/scripts/install_test_lp.sh
             fi
-            tree
+            find . | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
 jobs:
   build:
     parallelism: 1
