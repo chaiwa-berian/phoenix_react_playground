@@ -186,7 +186,7 @@ jobs:
       - run: cp .env.test.example .env.test
       - setup_mix_local
       - restore_platform_cache
-      - run: ls -a
+      - run: ls ./priv/language-packs
 
 workflows:
   version: 2.1
