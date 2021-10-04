@@ -4,7 +4,8 @@
   "scripts": {
     "build": "webpack --version && webpack --mode development --config webpack.config.js",
     "deploy": "webpack --mode production --config webpack.config.js",
-    "watch": "webpack --mode development --watch"
+    "watch": "webpack --mode development --watch",
+    "test": "jest --coverage"
   },
   "dependencies": {
     "milligram": "^1.4.1",
@@ -27,6 +28,7 @@
     "babel-loader": "^8.2.2",
     "copy-webpack-plugin": "^9.0.1",
     "css-loader": "^6.3.0",
+    "jest": "^27.2.4",
     "mini-css-extract-plugin": "^2.3.0",
     "optimize-css-assets-webpack-plugin": "^6.0.1",
     "typescript": "^4.4.3",

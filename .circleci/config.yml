@@ -31,7 +31,7 @@ commands:
   install_test_lp:
     steps:
       - run:
-          name: "Create priv/language_packs directory if does not exist"
+          name: "Install adaptors in priv/language_packs directory if does not exist"
           command: |
             [ -d priv/language_packs ] || mkdir -p priv/language_packs
             cd ./priv/language_packs
@@ -205,7 +205,14 @@ jobs:
       - run: cd assets && yarn install
       - prepare_db
       - run: ls
-      - run: cd assets && yarn test
+      - run: cd assets && yarn jest --coverage --coverageDirectory=./test/artifacts/reports
+      - run: ls ./test/artifacts/reports
+      - codecov/upload:
+          file: test/artifacts/reports/coverage-final.json
+      - store_test_results:
+          path: test/artifacts/reports/
+      - store_artifacts:
+          path: test/artifacts/screenshots/
 
 workflows:
   version: 2.1
